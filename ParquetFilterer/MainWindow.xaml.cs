@@ -1,4 +1,5 @@
-﻿using Parquet;
+﻿using CryLib;
+using Parquet;
 using Parquet.Data;
 using Parquet.Schema;
 using System;
@@ -7,6 +8,7 @@ using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.IO;
 using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -17,7 +19,7 @@ namespace ParquetFilterer
     /// <summary>
     /// Interaction logic for MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window, INotifyPropertyChanged
+    public partial class MainWindow : CryLib.WPF.CryWindowDesignable, INotifyPropertyChanged
     {
         public event PropertyChangedEventHandler? PropertyChanged;
 
@@ -52,6 +54,34 @@ namespace ParquetFilterer
         public MainWindow()
         {
             InitializeComponent();
+
+            StartFilterButton.BackgroundFunc = new Func<int>(() =>
+            {
+                if (!File.Exists(InputText) && !Directory.Exists(InputText))
+                {
+                    MessageBox.Show("Input path does not exist");
+                    return 0;
+                }
+
+                try
+                {
+                    _rules.Clear();
+
+                    foreach (FilterModel model in Filters)
+                    {
+                        if (model.RuleSet is not null)
+                            _rules.Add(model.ColumnIndex, model.RuleSet);
+                    }
+
+                    _Filter();
+                }
+                catch (Exception ex)
+                {
+                    CryMessagebox.Create(ex.ToString());
+                }
+
+                return 1;
+            });
         }
 
         private async void _Filter()
@@ -181,39 +211,14 @@ namespace ParquetFilterer
             }
         }
 
-        private void StartFilteringButton_Click(object sender, RoutedEventArgs e)
+        private async void StartFilterButton_StatusButtonClicked(object sender, EventArgs e)
         {
-            if (!File.Exists(InputText) && !Directory.Exists(InputText))
-            {
-                MessageBox.Show("Input path does not exist");
-                return;
-            }
-
             IsEnabled = false;
-
-            try
-            {
-                _rules.Clear();
-
-                foreach (FilterModel model in Filters)
-                {
-                    if (model.RuleSet is not null)
-                        _rules.Add(model.ColumnIndex, model.RuleSet);
-                }
-
-                _Filter();
-            }
-            catch(Exception ex)
-            {
-                ex.ToString();
-            }
-            finally
-            {
-                IsEnabled = true;
-            }
+            await StartFilterButton.RunTask();
+            IsEnabled = true;
         }
 
-        private async void LoadButton_Click(object sender, RoutedEventArgs e)
+        private async void CryButton_ButtonClicked(object sender, RoutedEventArgs e)
         {
             try
             {

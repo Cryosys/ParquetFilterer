@@ -1,5 +1,7 @@
 # Summary parquet filterer
  Filters rows out of parquet files and write the altered file to disk. Allowing to remove null entries or remove them by threshold.
+ 
+ ![image](https://github.com/Cryosys/ParquetFilterer/assets/20095930/4ea4953d-b026-4dba-b930-ce8da0edb78d)
 
  # History
  The program or solution was originaly meant for filtering data out of the LAION-5B dataset as to not download everything and i could not find a simply easy to verify solution for this so i made my own app with GUI.
